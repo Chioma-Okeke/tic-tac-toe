@@ -6,18 +6,19 @@ import GameOver from "../components/GameOver";
 import gameOverSoundAsset from "../sound/gameover_sound.wav";
 import yaySoundAsset from "../sound/yay_sound.mp3";
 import clickSoundAsset from "../sound/cliick_sound.wav";
-import { useLocation } from "react-router-dom";
-// import PlayerCard from "../components/PlayerCard";
+import { Link, useLocation } from "react-router-dom";
+import { RiHomeFill } from "react-icons/ri";
+import PlayerCard from "../components/PlayerCard";
 
 const gameOverSound = new Audio(gameOverSoundAsset);
-gameOverSound.volume = 0.2;
+gameOverSound.volume = 0.4;
 const clickSound = new Audio(clickSoundAsset);
 clickSound.volume = 0.5;
 const winSound = new Audio(yaySoundAsset);
-winSound.volume = 0.3;
+winSound.volume = 0.4;
 
-const player_x = "🧡";
-const player_o = "💛";
+const player_x = "X";
+const player_o = "O";
 
 const winningCombinations = [
     //rows
@@ -47,9 +48,9 @@ function checkWinner(tiles, setStrikeClass, setGameState) {
             tileValue1 === tileValue3
         ) {
             setStrikeClass(strikeClass);
-            if (tileValue1 === player_x) {
+            if (tileValue1 === player_x || tileValue1 === "X") {
                 setGameState(GameState.playerXWins);
-            } else {
+            } else if (tileValue1 === player_o || tileValue1 === "O") {
                 setGameState(GameState.playerOWins);
             }
             return;
@@ -67,6 +68,11 @@ function GameScreen() {
     const [playerTurn, setPlayerTurn] = React.useState(player_x);
     const [strikeClass, setStrikeClass] = React.useState("");
     const [gameState, setGameState] = useState(GameState.inProgress);
+    const [rounds, setRounds] = React.useState(1);
+    const [wins, setWins] = React.useState({
+        player_o_wins: 0,
+        player_x_wins: 0,
+    });
     const location = useLocation();
     const selectedValue = location.state?.selectedValue;
 
@@ -83,6 +89,24 @@ function GameScreen() {
     }, [tiles]);
 
     useEffect(() => {
+        if (gameState === GameState.playerOWins) {
+            setWins((prevScore) => {
+                return {
+                    ...prevScore,
+                    player_o_wins: prevScore.player_o_wins + 1,
+                };
+            });
+        } else if (gameState === GameState.playerXWins) {
+            setWins((prevScore) => {
+                return {
+                    ...prevScore,
+                    player_x_wins: prevScore.player_x_wins + 1,
+                };
+            });
+        }
+    }, [gameState]);
+
+    useEffect(() => {
         if (
             gameState === GameState.playerOWins ||
             gameState === GameState.playerXWins
@@ -96,13 +120,13 @@ function GameScreen() {
     useEffect(() => {
         if (selectedValue === "play-with-computer") {
             const isComputerTurn =
-                tiles.filter((tile) => tile !== null).length % 2 === 0;
+                tiles.filter((tile) => tile !== null).length % 2 === 1;
             const putComputerAt = (index) => {
-                const newTiles = [...tiles];
+                let newTiles = [...tiles];
                 newTiles[index] = "O";
-                setTiles(newTiles);
+                setTiles([...newTiles]);
             };
-            if (isComputerTurn) {
+            if (isComputerTurn && tiles.some((tile) => tile === null)) {
                 const emptyTiles = tiles
                     .map((tile, index) => (tile === null ? index : null))
                     .filter((val) => val !== null);
@@ -110,6 +134,7 @@ function GameScreen() {
                 const randomIndex =
                     emptyTiles[Math.ceil(Math.random() * emptyTiles.length)];
                 putComputerAt(randomIndex);
+                console.log("problem site 1")
             }
         }
     }, [selectedValue, tiles]);
@@ -124,9 +149,13 @@ function GameScreen() {
         }
 
         if (selectedValue === "play-with-computer") {
-            const newTiles = [...tiles];
-            newTiles[index] = playerTurn;
-            setTiles(newTiles);
+            const isplayerTurn =
+                tiles.filter((tile) => tile !== null).length % 2 === 0;
+            if (isplayerTurn) {
+                let newTiles = [...tiles];
+                newTiles[index] = "X";
+                setTiles([...newTiles]);
+            }
         } else {
             const newTiles = [...tiles];
             newTiles[index] = playerTurn;
@@ -137,28 +166,10 @@ function GameScreen() {
                 setPlayerTurn(player_x);
             }
         }
-
-        // if (selectedValue === "play-with-computer") {
-        //     const isComputerTurn =
-        //         tiles.filter((tile) => tile !== null).length % 2 === 0;
-        //     const putComputerAt = (index) => {
-        //         const newTiles = [...tiles];
-        //         newTiles[index] = "O";
-        //         setTiles(newTiles);
-        //     };
-        //     if (isComputerTurn) {
-        //         const emptyTiles = tiles
-        //             .map((tile, index) => (tile === null ? index : null))
-        //             .filter((val) => val !== null);
-
-        //         const randomIndex =
-        //             emptyTiles[Math.ceil(Math.random() * emptyTiles.length)];
-        //         putComputerAt(randomIndex);
-        //     }
-        // }
     }
 
     function reset() {
+        setRounds((prevRound) => (prevRound = prevRound + 1));
         setTiles(Array(9).fill(null));
         setStrikeClass("");
         setGameState(GameState.inProgress);
@@ -166,30 +177,56 @@ function GameScreen() {
     }
 
     return (
-        <div className="flex flex-col items-center justify-center">
-            <h1>TIC TAC TOE</h1>
-            <h3>1st Round</h3>
-            <div className="flex items-center justify-between w-[80%}">
-                {/* <PlayerCard /> */}
-                <GameBoard
-                    playerTurn={playerTurn}
-                    tiles={tiles}
-                    onTileClick={handleTileClick}
-                    strikeClass={strikeClass}
-                />
-                {/* <PlayerCard /> */}
-            </div>
-            <GameOver gameState={gameState} />
-            {gameState !== GameState.inProgress && (
-                <button
-                    onClick={() => {
-                        reset();
-                    }}
-                    cursor={"pointer"}
+        <div className="bg-[#ffeaed]">
+            <div className="flex flex-col items-center pt-5 md:p-5 w-[90%] lg:w-[90%] max-w-[1024px] mx-auto min-h-lvh">
+                <Link
+                    to="/"
+                    className="rounded-md bg-[#9a0001] self-start p-3 cursor-pointer transition ease-out hover:scale-110"
                 >
-                    Play Again
-                </button>
-            )}
+                    <RiHomeFill size={20} color="white" />
+                </Link>
+                <h1 className="text-3xl sm:text-6xl font-bold mb-4">
+                    Round {rounds}
+                </h1>
+                <div className="flex items-center justify-between w-[90%] lg:w-[60%] mx-auto my-2">
+                    <PlayerCard player={player_o} wins={wins.player_o_wins} />
+                    <PlayerCard player={player_x} wins={wins.player_x_wins} />
+                </div>
+                <h3 className="text-3xl sm:text-6xl font-bold mb-4">
+                    {playerTurn} turn
+                </h3>
+                <div className="flex items-center justify-between w-[80%}">
+                    <GameBoard
+                        playerTurn={playerTurn}
+                        tiles={tiles}
+                        onTileClick={handleTileClick}
+                        strikeClass={strikeClass}
+                    />
+                </div>
+                <GameOver gameState={gameState} />
+                {gameState !== GameState.inProgress && (
+                    <button
+                        onClick={() => {
+                            reset();
+                        }}
+                        cursor={"pointer"}
+                        className="w-[90%] md:w-[70%] max-w-[500px] p-3 rounded-md bg-[#9a0001] text-white text-center text-md md:text-2xl transition ease-in-out hover:bg-[#582424] duration-500"
+                    >
+                        Play Again
+                    </button>
+                )}
+                {gameState === GameState.inProgress && (
+                    <button
+                        onClick={() => {
+                            reset();
+                        }}
+                        cursor={"pointer"}
+                        className="w-[90%] md:w-[70%] max-w-[500px] mt-10 p-3 rounded-md bg-[#9a0001] text-white text-center text-md md:text-2xl transition ease-in-out hover:bg-[#582424] duration-500"
+                    >
+                        Reset Game
+                    </button>
+                )}
+            </div>
         </div>
     );
 }

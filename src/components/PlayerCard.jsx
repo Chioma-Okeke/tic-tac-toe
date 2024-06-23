@@ -1,14 +1,11 @@
+/* eslint-disable react/prop-types */
 // import React from 'react'
 
-function PlayerCard() {
+function PlayerCard({ player, wins}) {
     return (
-        <div>
-            <div className="flex flex-col items-center">
-                <img src="" alt="" />
-                <p>Uwak Daniel</p>
-                <p>X</p>
-            </div>
-            <p>Won Rounds:</p>
+        <div className="flex items-center justify-between w-[40%] max-w-[130px] rounded-md px-3 py-3 text-lg lg:text-2xl bg-[#9a0001] text-white">
+           <p>{player}</p>
+           <span>{wins}</span>
         </div>
     );
 }
