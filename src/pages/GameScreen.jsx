@@ -8,14 +8,15 @@ import yaySoundAsset from "../sound/yay_sound.mp3";
 import clickSoundAsset from "../sound/cliick_sound.wav";
 import { Link, useLocation } from "react-router-dom";
 import { RiHomeFill } from "react-icons/ri";
+import { PiSpeakerSimpleHighDuotone, PiSpeakerSimpleXDuotone } from "react-icons/pi";
 import PlayerCard from "../components/PlayerCard";
 
 const gameOverSound = new Audio(gameOverSoundAsset);
-gameOverSound.volume = 0.4;
+gameOverSound.volume = 0.3;
 const clickSound = new Audio(clickSoundAsset);
-clickSound.volume = 0.5;
+clickSound.volume = 0.3;
 const winSound = new Audio(yaySoundAsset);
-winSound.volume = 0.4;
+winSound.volume = 0.3;
 
 const player_x = "X";
 const player_o = "O";
@@ -69,6 +70,7 @@ function GameScreen() {
     const [strikeClass, setStrikeClass] = React.useState("");
     const [gameState, setGameState] = useState(GameState.inProgress);
     const [rounds, setRounds] = React.useState(1);
+    const [soundOff, setSoundOff] = React.useState(false);
     const [wins, setWins] = React.useState({
         player_o_wins: 0,
         player_x_wins: 0,
@@ -83,7 +85,7 @@ function GameScreen() {
     }, [tiles]);
 
     useEffect(() => {
-        if (tiles.some((tile) => tile !== null)) {
+        if (tiles.some((tile) => tile !== null && !soundOff)) {
             clickSound.play();
         }
     }, [tiles]);
@@ -109,10 +111,10 @@ function GameScreen() {
     useEffect(() => {
         if (
             gameState === GameState.playerOWins ||
-            gameState === GameState.playerXWins
+            gameState === GameState.playerXWins && !soundOff
         ) {
             winSound.play();
-        } else if (gameState === GameState.draw) {
+        } else if (gameState === GameState.draw && !soundOff) {
             gameOverSound.play();
         }
     }, [gameState]);
@@ -134,7 +136,7 @@ function GameScreen() {
                 const randomIndex =
                     emptyTiles[Math.ceil(Math.random() * emptyTiles.length)];
                 putComputerAt(randomIndex);
-                console.log("problem site 1")
+                console.log("problem site 1");
             }
         }
     }, [selectedValue, tiles]);
@@ -179,12 +181,22 @@ function GameScreen() {
     return (
         <div className="bg-[#ffeaed]">
             <div className="flex flex-col items-center pt-5 md:p-5 w-[90%] lg:w-[90%] max-w-[1024px] mx-auto min-h-lvh">
-                <Link
-                    to="/"
-                    className="rounded-md bg-[#9a0001] self-start p-3 cursor-pointer transition ease-out hover:scale-110"
-                >
-                    <RiHomeFill size={20} color="white" />
-                </Link>
+                <div className="flex items-center justify-between w-full">
+                    <Link
+                        to="/"
+                        className="rounded-md bg-[#9a0001] self-start p-3 cursor-pointer transition ease-out hover:scale-110"
+                    >
+                        <RiHomeFill size={20} color="white" />
+                    </Link>
+                    <button
+                        className="rounded-md bg-[#9a0001] self-start p-3 cursor-pointer transition ease-out hover:scale-110"
+                        onClick={() => {
+                            setSoundOff((prevSetting) => !prevSetting);
+                        }}
+                    >
+                        {!soundOff ? <PiSpeakerSimpleHighDuotone color="white" className=" line-through" size={20}/> : <PiSpeakerSimpleXDuotone color="white" className=" line-through" size={20}/>}
+                    </button>
+                </div>
                 <h1 className="text-3xl sm:text-6xl font-bold mb-4">
                     Round {rounds}
                 </h1>

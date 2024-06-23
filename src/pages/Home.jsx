@@ -1,35 +1,21 @@
 /* eslint-disable no-unused-vars */
-// import React from 'react'
 import { useState } from "react";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
-// import GameSettings from "../components/GameSettings";
+
 import GameLogo from "../assets/game background.png";
 import { PiPlayFill } from "react-icons/pi";
 import { IoPersonSharp, IoPeople } from "react-icons/io5";
 import { Link } from "react-router-dom";
 
 function Home() {
-    // const [showGameSettings, setShowGameSettings] = useState(false);
     const [selectedValue, setSelectedValue] = useState("play-with-computer");
 
     function handlePlayMode(value) {
-        // console.log(event.target.id);
-        // if (event.target.id === "computer-mode") {
-        //     setComputerMode((prevComputerMode) => !prevComputerMode);
-        //     console.log(computerMode);
-        // } else {
-        //     setMultiPlayerMode(!multiPlayerMode);
-        //     console.log(multiPlayerMode);
-        // }
         console.log(value);
         setSelectedValue(value);
         console.log(selectedValue);
     }
-
-    // function handleToggle() {
-    //     setShowGameSettings(false);
-    // }
 
     return (
         <div className="bg-[#fcf7f7] min-h-lvh">
